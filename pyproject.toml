@@ -1,0 +1,30 @@
+[project]
+name = "authentiscan"
+version = "0.1.0"
+description = "End-to-end pipeline for detecting AI-generated images"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "directory-tree>=1.0.0",
+    "fastai>=2.8.12",
+    "fastapi>=0.143.1",
+    "imageio>=2.38.1",
+    "ipywidgets>=8.1.9",
+    "matplotlib>=3.11.2",
+    "mlflow>=3.17.1",
+    "numpy>=2.5.4",
+    "optuna>=5.0.0",
+    "pandas>=3.0.6",
+    "pillow>=12.3.0",
+    "pydantic>=2.14.1",
+    "pytest>=9.1.1",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "seaborn>=0.13.2",
+    "torch>=2.14.1",
+    "torchmetrics>=1.9.0",
+    "torchvision>=0.29.1",
+]
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"

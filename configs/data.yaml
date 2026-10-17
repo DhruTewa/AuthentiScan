@@ -1,0 +1,24 @@
+paths:
+  raw_dir: data
+  processed_dir: data/processed
+  manifest_path: data/manifest.csv
+
+classes:
+  fake: 1
+  real: 0
+
+split:
+  seed: 42
+  val_fraction: 0.1
+
+preprocess:
+  image_size: 256
+  resize_method: bicubic
+  output_format: PNG
+  mode: RGB
+
+filters:
+  min_short_side: 256
+  max_aspect_ratio: 3.0
+  min_pixel_std: 2.0
+  dedupe_exact: true
