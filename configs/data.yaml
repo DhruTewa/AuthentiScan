@@ -1,7 +1,10 @@
 paths:
   raw_dir: data
   processed_dir: data/processed
-  manifest_path: data/manifest.csv
+  manifest_path: data/interim/dataset_manifest.csv
+  scan_path: data/interim/scan.csv
+  rejected_path: data/interim/excluded_images.csv
+  split_manifest_path: data/interim/split_manifest.csv
 
 classes:
   fake: 1

@@ -11,6 +11,9 @@ class PathsConfig(BaseModel):
     raw_dir: Path
     processed_dir: Path
     manifest_path: Path
+    scan_path: Path
+    rejected_path: Path
+    split_manifest_path: Path
 
 
 class ClassesConfig(BaseModel):

@@ -4,12 +4,14 @@ import warnings
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any
-
 import numpy as np
 import pandas as pd
 from PIL import Image
-
 from authentiscan.schemas import ScanRow
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 IMG_EXT = {".jpg", ".png"}
 SPLITS = ("train", "test")
@@ -88,7 +90,8 @@ def scan_dataset(root, out_csv, workers: int = 8, limit: int | None = None,
         for i, row in enumerate(pool.map(scan_image, jobs, chunksize=64), 1):
             rows.append(row)
             if i % 5000 == 0:
-                print(f"{i}/{len(jobs)} scanned", flush=True)
+                logger.info("%d/%d scanned", i, len(jobs))
+
 
     df = pd.DataFrame([r.model_dump() for r in rows]).sort_values("path").reset_index(drop=True)
     if limit is None:

@@ -5,7 +5,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from authentiscan.schemas import DataConfig, load_data_config
+from authentiscan.schemas import DataConfig, ScanRow, load_data_config
 
 CONFIG_PATH = Path(__file__).parent.parent / "configs" / "data.yaml"
 
@@ -65,3 +65,42 @@ def test_rejects_identical_class_labels(raw_config: dict[str, Any]) -> None:
     raw_config["classes"] = {"fake": 0, "real": 0}
     with pytest.raises(ValidationError):
         DataConfig.model_validate(raw_config)
+
+
+def test_real_config_has_scan_and_rejected_paths() -> None:
+    paths = load_data_config(CONFIG_PATH).paths
+    assert paths.scan_path == Path("data/interim/scan.csv")
+    assert paths.manifest_path == Path("data/interim/dataset_manifest.csv")
+    assert paths.rejected_path == Path("data/interim/excluded_images.csv")
+    assert paths.split_manifest_path == Path("data/interim/split_manifest.csv")
+
+
+@pytest.mark.parametrize("key", ["scan_path", "rejected_path", "split_manifest_path"])
+def test_rejects_missing_path_key(raw_config: dict[str, Any], key: str) -> None:
+    raw_config["paths"].pop(key)
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate(raw_config)
+
+
+def test_rejects_unknown_path_key(raw_config: dict[str, Any]) -> None:
+    # catches the rejects_path vs rejected_path kind of typo
+    raw_config["paths"]["rejects_path"] = "data/interim/rejects.csv"
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate(raw_config)
+
+
+def test_scan_row_defaults_to_failed() -> None:
+    row = ScanRow(path="train/real/a.png", split="train", label="real", ext="png")
+    assert not row.decode_ok
+    assert row.width is None and row.md5 is None
+    assert row.error == "" and row.warning == ""
+
+
+def test_scan_row_rejects_unknown_field() -> None:
+    with pytest.raises(ValidationError):
+        ScanRow(path="a", split="train", label="real", ext="png", colour="red")  # type: ignore[call-arg]
+
+
+def test_scan_row_needs_identity_fields() -> None:
+    with pytest.raises(ValidationError):
+        ScanRow(path="a", split="train", label="real")  # type: ignore[call-arg]
