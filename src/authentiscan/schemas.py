@@ -68,3 +68,26 @@ def load_data_config(path: Path) -> DataConfig:
     with open(path) as f:
         data = yaml.safe_load(f)
     return DataConfig.model_validate(data)
+
+
+class ScanRow(BaseModel):
+    """One scanned image. Measurements stay None when the image failed to decode."""
+
+    model_config = ConfigDict(extra="forbid")
+    path: str
+    split: str
+    label: str
+    ext: str
+    file_bytes: int | None = None  # None only if the file vanished before stat()
+    format: str | None = None
+    mode: str | None = None
+    width: int | None = None
+    height: int | None = None
+    aspect_ratio: float | None = None
+    pixel_std: float | None = None
+    exif_orientation: int | None = None
+    jpeg_q: int | None = None
+    md5: str | None = None
+    decode_ok: bool = False
+    error: str = ""
+    warning: str = ""

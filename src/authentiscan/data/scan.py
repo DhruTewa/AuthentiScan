@@ -3,10 +3,13 @@ import random
 import warnings
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from PIL import Image
+
+from authentiscan.schemas import ScanRow
 
 IMG_EXT = {".jpg", ".png"}
 SPLITS = ("train", "test")
@@ -21,20 +24,21 @@ def file_md5(path: Path, chunk: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
-def scan_image(args: tuple[str, str]) -> dict:
+def scan_image(args: tuple[str, str]) -> ScanRow:
     """Scan one file. Never raises, failures are recorded in the row."""
     root, rel = args  # plain strings so they can be sent to worker processes
     path = Path(root) / rel
     split, label = Path(rel).parts[:2]
-    row = {
+    row: dict[str, Any] = {
         "path": rel, "split": split, "label": label,
-        "ext": path.suffix.lower().strip("."), "file_bytes": path.stat().st_size,
+        "ext": path.suffix.lower().strip("."), "file_bytes": None,
         "format": None, "mode": None, "width": None, "height": None,
         "aspect_ratio": None, "exif_orientation": None, "jpeg_q": None,
         "decode_ok": False, "error": "", "warning": "",
         "pixel_std": None, "md5": None,
     }
     try:
+        row["file_bytes"] = path.stat().st_size  # inside try so a vanished file is a failed row
         row["md5"] = file_md5(path)
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
@@ -54,7 +58,7 @@ def scan_image(args: tuple[str, str]) -> dict:
         row["warning"] = "; ".join(str(w.message)[:100] for w in caught)
     except Exception as e:
         row["error"] = f"{type(e).__name__}: {e}"
-    return row
+    return ScanRow(**row)
 
 
 def list_files(root: Path) -> list[str]:
@@ -86,7 +90,7 @@ def scan_dataset(root, out_csv, workers: int = 8, limit: int | None = None,
             if i % 5000 == 0:
                 print(f"{i}/{len(jobs)} scanned", flush=True)
 
-    df = pd.DataFrame(rows).sort_values("path").reset_index(drop=True)
+    df = pd.DataFrame([r.model_dump() for r in rows]).sort_values("path").reset_index(drop=True)
     if limit is None:
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(out_csv, index=False)

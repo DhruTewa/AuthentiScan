@@ -17,4 +17,8 @@ mlruns/
 *.pt
 *.pth
 
+# personal reference files
 docs/concepts.md
+progress.md
+docs/roadmap.md
+docs/private/
