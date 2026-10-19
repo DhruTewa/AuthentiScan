@@ -2,7 +2,7 @@
 
 End-to-end PyTorch pipeline that classifies images as AI-generated or real, with leak-aware data validation, sliced evaluation, and a FastAPI and Docker serving layer.
 
-The goal is a binary classifier built the way a real team would build it: data pipeline, training, evaluation, serving, and monitoring. Status: work in progress, the data config, validation schemas and image filters are in place.
+The goal is a binary classifier built the way a real team would build it: data pipeline, training, evaluation, serving, and monitoring. Status: work in progress. The data pipeline is built and tested (scan, filters, train/val split, preprocessing, normalization stats, `Dataset`). Model training, evaluation, serving and monitoring are next.
 
 ## Dataset
 
@@ -41,3 +41,23 @@ The two classes differ in ways unrelated to whether an image is AI-generated. A 
 - **Extension vs content:** 31 `.jpg` files are really PNG, plus 1 GIF and 1 MPO.
 
 Together these affect well under 1% of the data. The shortcuts above mean preprocessing has to treat every image identically, and results will be reported sliced by format and mode, not only as one overall number.
+
+## Data pipeline
+
+Every step is a plain function with tests, driven by `configs/data.yaml`. Setup and commands are in [docs/dev-setup.md](docs/dev-setup.md), and the design decisions are in [docs/decisions/](docs/decisions/).
+
+| Step | Result |
+|---|---|
+| Scan and filter | 59,760 images kept, 240 excluded with a reason each (broken, too small, extreme aspect ratio, blank, exact duplicate). |
+| Split | Train 43,033, validation 4,781 (10%, stratified, seeded), test 11,946, untouched. |
+| Preprocess | Every image resized to 256x256 and saved as PNG, so file format and size cannot reveal the class. |
+| Normalize | Per-channel mean and standard deviation computed from the train split only. |
+| Load | Random 224 crop for training, center 224 crop for evaluation and serving, from one shared transform. |
+
+Re-running the scan, filter and split steps gives byte-identical CSV files (checked with md5), and re-running preprocessing skips images that already exist.
+
+## Known limitations
+
+- **Content and style shortcut.** In a sample batch, the fakes are mostly dramatic characters and illustrations, while the reals are mostly landscapes, objects and paintings. A high score would not by itself prove that the model detects generation artifacts. Evaluation will include a metadata-only baseline and metrics sliced by format and mode.
+- **Older generators.** The fakes come from Stable Diffusion, Midjourney and DALL-E. Results say nothing about the newest generators.
+- **Wide images.** Images with an aspect ratio above 3.0 are excluded, and the rest are center-cropped, so the model never sees the edges of very wide images.

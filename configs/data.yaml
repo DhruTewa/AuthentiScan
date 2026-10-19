@@ -6,7 +6,8 @@ paths:
   rejected_path: data/interim/excluded_images.csv
   split_manifest_path: data/interim/split_manifest.csv
   processed_manifest_path: data/processed/manifest.csv
-  
+  norm_stats_path: data/processed/norm_stats.json
+
 classes:
   fake: 1
   real: 0
@@ -20,6 +21,7 @@ preprocess:
   resize_method: bicubic
   output_format: PNG
   mode: RGB
+  crop_size: 224
 
 filters:
   min_short_side: 256

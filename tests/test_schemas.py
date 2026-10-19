@@ -27,6 +27,7 @@ def test_real_config_loads() -> None:
         ("preprocess", "output_format", "JPEG"),
         ("preprocess", "resize_method", "nearest"),
         ("preprocess", "image_size", 0),
+        ("preprocess", "crop_size", 0),
         ("split", "val_fraction", 1.5),
         ("split", "val_fraction", 0),
         ("filters", "min_short_side", 0),
@@ -74,11 +75,15 @@ def test_real_config_has_scan_and_rejected_paths() -> None:
     assert paths.rejected_path == Path("data/interim/excluded_images.csv")
     assert paths.split_manifest_path == Path("data/interim/split_manifest.csv")
     assert paths.processed_manifest_path == Path("data/processed/manifest.csv")
+    assert paths.norm_stats_path == Path("data/processed/norm_stats.json")
 
 
 @pytest.mark.parametrize(
     "key",
-    ["scan_path", "rejected_path", "split_manifest_path", "processed_manifest_path"],
+    [
+        "scan_path", "rejected_path", "split_manifest_path",
+        "processed_manifest_path", "norm_stats_path",
+    ],
 )
 def test_rejects_missing_path_key(raw_config: dict[str, Any], key: str) -> None:
     raw_config["paths"].pop(key)
@@ -108,3 +113,26 @@ def test_scan_row_rejects_unknown_field() -> None:
 def test_scan_row_needs_identity_fields() -> None:
     with pytest.raises(ValidationError):
         ScanRow(path="a", split="train", label="real")  # type: ignore[call-arg]
+
+
+def test_real_config_crop_size() -> None:
+    assert load_data_config(CONFIG_PATH).preprocess.crop_size == 224
+
+
+def test_rejects_crop_larger_than_stored_image(raw_config: dict[str, Any]) -> None:
+    # a crop bigger than the stored image would need padding or upscaling
+    raw_config["preprocess"]["crop_size"] = raw_config["preprocess"]["image_size"] + 1
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate(raw_config)
+
+
+def test_rejects_missing_crop_size(raw_config: dict[str, Any]) -> None:
+    raw_config["preprocess"].pop("crop_size")
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate(raw_config)
+
+
+def test_rejects_null_crop_size(raw_config: dict[str, Any]) -> None:
+    raw_config["preprocess"]["crop_size"] = None
+    with pytest.raises(ValidationError):
+        DataConfig.model_validate(raw_config)

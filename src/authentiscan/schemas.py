@@ -15,6 +15,7 @@ class PathsConfig(BaseModel):
     rejected_path: Path
     split_manifest_path: Path
     processed_manifest_path: Path
+    norm_stats_path: Path
 
 class ClassesConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -41,6 +42,14 @@ class PreprocessConfig(BaseModel):
     resize_method: Literal["bicubic", "lanczos"]
     output_format: Literal["PNG"]  # lossless, so no new compression artifacts
     mode: Literal["RGB"]
+    crop_size: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def crop_fits(self) -> "PreprocessConfig":
+        # a crop larger than the stored image would need padding or upscaling
+        if self.crop_size > self.image_size:
+            raise ValueError("crop_size must not exceed image_size")
+        return self
 
 
 class FiltersConfig(BaseModel):
