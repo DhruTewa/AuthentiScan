@@ -14,7 +14,7 @@ class PathsConfig(BaseModel):
     scan_path: Path
     rejected_path: Path
     split_manifest_path: Path
-
+    processed_manifest_path: Path
 
 class ClassesConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -94,3 +94,15 @@ class ScanRow(BaseModel):
     decode_ok: bool = False
     error: str = ""
     warning: str = ""
+
+
+class ProcessedRow(BaseModel):
+    """Outcome of preprocessing one image. error is empty unless status is failed."""
+
+    model_config = ConfigDict(extra="forbid")
+    path: str
+    output_path: str
+    split: str
+    label: str
+    status: Literal["ok", "skipped", "failed"]
+    error: str = ""

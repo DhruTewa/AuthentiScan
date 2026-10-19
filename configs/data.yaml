@@ -5,7 +5,8 @@ paths:
   scan_path: data/interim/scan.csv
   rejected_path: data/interim/excluded_images.csv
   split_manifest_path: data/interim/split_manifest.csv
-
+  processed_manifest_path: data/processed/manifest.csv
+  
 classes:
   fake: 1
   real: 0

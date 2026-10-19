@@ -73,9 +73,13 @@ def test_real_config_has_scan_and_rejected_paths() -> None:
     assert paths.manifest_path == Path("data/interim/dataset_manifest.csv")
     assert paths.rejected_path == Path("data/interim/excluded_images.csv")
     assert paths.split_manifest_path == Path("data/interim/split_manifest.csv")
+    assert paths.processed_manifest_path == Path("data/processed/manifest.csv")
 
 
-@pytest.mark.parametrize("key", ["scan_path", "rejected_path", "split_manifest_path"])
+@pytest.mark.parametrize(
+    "key",
+    ["scan_path", "rejected_path", "split_manifest_path", "processed_manifest_path"],
+)
 def test_rejects_missing_path_key(raw_config: dict[str, Any], key: str) -> None:
     raw_config["paths"].pop(key)
     with pytest.raises(ValidationError):

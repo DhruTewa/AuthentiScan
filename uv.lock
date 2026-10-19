@@ -261,6 +261,7 @@ dependencies = [
     { name = "torch" },
     { name = "torchmetrics" },
     { name = "torchvision" },
+    { name = "tqdm" },
 ]
 
 [package.metadata]
@@ -284,6 +285,7 @@ requires-dist = [
     { name = "torch", specifier = ">=2.14.1" },
     { name = "torchmetrics", specifier = ">=1.9.0" },
     { name = "torchvision", specifier = ">=0.29.1" },
+    { name = "tqdm", specifier = ">=4.70.1" },
 ]
 
 [[package]]
